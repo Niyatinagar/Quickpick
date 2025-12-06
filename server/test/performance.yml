@@ -1,0 +1,65 @@
+# PERFORMANCE TEST CONFIGURATION
+# Tool: Artillery (Industry standard for load testing)
+# Standards: Response time < 1000ms, Error rate < 1%
+
+config:
+  target: "http://localhost:8080"
+  phases:
+    # Ramp-up phase
+    - duration: 30
+      arrivalRate: 5
+      name: "Warm up - 5 users/sec"
+    
+    # Sustained load
+    - duration: 60
+      arrivalRate: 20
+      name: "Normal load - 20 users/sec"
+    
+    # Peak load
+    - duration: 30
+      arrivalRate: 50
+      name: "Peak load - 50 users/sec"
+
+# Test scenarios
+scenarios:
+  # Scenario 1: User browsing products
+  - name: "Product Browsing"
+    weight: 60
+    flow:
+      - get:
+          url: "/api/product/get"
+      - think: 2  # User reads for 2 seconds
+
+  # Scenario 2: User registration
+  - name: "User Registration"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/user/register"
+          json:
+            name: "Test User"
+            email: "test{{ $randomNumber() }}@example.com"
+            password: "password123"
+
+  # Scenario 3: Search functionality
+  - name: "Product Search"
+    weight: 20
+    flow:
+      - post:
+          url: "/api/product/search"
+          json:
+            search: "laptop"
+            page: 1
+            limit: 10
+
+# Performance thresholds (Industry standards)
+ensure:
+  maxErrorRate: 1          # Max 1% errors allowed
+  p95: 1000               # 95% of requests < 1000ms
+  p99: 2000               # 99% of requests < 2000ms
+
+# Metrics to track:
+# - Response time (p50, p95, p99)
+# - Requests per second (RPS)
+# - Error rate
+# - Concurrent users
